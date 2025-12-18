@@ -1,9 +1,8 @@
+vite.config.js
+example.html
 node_modules
-src
 .git
 .gitignore
 .vscode
 .idea
 *.log
-vite.config.js
-

@@ -16,7 +16,6 @@ export default {
 };
 
 // Auto-install when used in browser
-if (typeof globalThis !== 'undefined' && globalThis.window && globalThis.window.Vue) {
-	globalThis.window.Vue.use(install);
-}
+// Auto-install logic removed for Vue 3 compatibility
+// Users must explicitly install the plugin: app.use(VueDmak)
 
