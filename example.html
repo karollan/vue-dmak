@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Vue Dmak Example</title>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<script src="https://unpkg.com/raphael@2.3.0/raphael.min.js"></script>
+	<script src="./dist/vue-dmak.umd.js"></script>
+</head>
+<body>
+	<div id="app">
+		<h1>Vue Dmak Example</h1>
+		
+		<div>
+			<h2>こんにちは</h2>
+			<VueDmak 
+				text="こんにちは" 
+				:uri="kanjiUri"
+				@loaded="onLoaded"
+				@drew="onDrew"
+				@erased="onErased"
+				ref="dmak1"
+			/>
+		</div>
+
+		<div>
+			<h2>世界</h2>
+			<VueDmak 
+				text="世界" 
+				:uri="kanjiUri"
+				:stroke="redStroke"
+				ref="dmak2"
+			/>
+		</div>
+
+		<div>
+			<button @click="play1">Play 1</button>
+			<button @click="pause1">Pause 1</button>
+			<button @click="reset1">Reset 1</button>
+			<button @click="next1">Next 1</button>
+			<button @click="back1">Back 1</button>
+		</div>
+	</div>
+
+	<script>
+		const { createApp } = Vue;
+		
+		createApp({
+			data() {
+				return {
+					kanjiUri: 'http://kanjivg.tagaini.net/kanjivg/kanji/',
+					redStroke: {
+						attr: {
+							stroke: '#FF0000'
+						}
+					}
+				};
+			},
+			methods: {
+				play1() {
+					this.$refs.dmak1.render();
+				},
+				pause1() {
+					this.$refs.dmak1.pause();
+				},
+				reset1() {
+					this.$refs.dmak1.erase();
+				},
+				next1() {
+					this.$refs.dmak1.renderNextStrokes(1);
+				},
+				back1() {
+					this.$refs.dmak1.eraseLastStrokes(1);
+				},
+				onLoaded(strokes) {
+					console.log('Loaded', strokes);
+				},
+				onDrew(pointer) {
+					console.log('Drew stroke', pointer);
+				},
+				onErased(pointer) {
+					console.log('Erased stroke', pointer);
+				}
+			}
+		}).use(VueDmak).mount('#app');
+	</script>
+</body>
+</html>
+

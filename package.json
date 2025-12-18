@@ -1,0 +1,51 @@
+{
+	"name": "vue-dmak",
+	"version": "1.0.0",
+	"description": "Vue component wrapper for Draw Me A Kanji (dmak) - Render your Japanese writings with fun and taste",
+	"main": "dist/vue-dmak.umd.js",
+	"module": "dist/vue-dmak.es.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"prepublishOnly": "npm run build"
+	},
+	"keywords": [
+		"vue",
+		"vue3",
+		"vue-component",
+		"kanji",
+		"japanese",
+		"draw",
+		"svg",
+		"animation",
+		"dmak"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yourusername/vue-dmak.git"
+	},
+	"bugs": {
+		"url": "https://github.com/yourusername/vue-dmak/issues"
+	},
+	"homepage": "https://github.com/yourusername/vue-dmak#readme",
+	"peerDependencies": {
+		"vue": "^3.0.0"
+	},
+	"dependencies": {
+		"raphael": "^2.3.0"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^4.5.0",
+		"vite": "^5.0.0",
+		"vue": "^3.3.0"
+	}
+}
+
