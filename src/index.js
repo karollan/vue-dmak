@@ -7,6 +7,8 @@ function install(Vue) {
 	Vue.component('VueDmak', VueDmak);
 }
 
+export { VueDmak, Dmak, DmakLoader, install };
+
 // Export component and install function
 export default {
 	VueDmak,
