@@ -5,6 +5,7 @@ export interface VueDmakProps {
     uri?: string;
     skipLoad?: boolean;
     autoplay?: boolean;
+    renderAt?: number;
     height?: number;
     width?: number;
     viewBox?: { x: number; y: number; w: number; h: number };

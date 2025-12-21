@@ -43,6 +43,10 @@ export default {
 				h: 109
 			})
 		},
+		renderAt: {
+			type: Number,
+			default: null
+		},
 		step: {
 			type: Number,
 			default: 0.03
@@ -122,6 +126,7 @@ export default {
 					width: this.width,
 					viewBox: this.viewBox,
 					step: this.step,
+					renderAt: this.renderAt,
 					stroke: this.stroke,
 					grid: this.grid,
 					loaded: (strokes) => {

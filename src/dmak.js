@@ -34,7 +34,11 @@ export class Dmak {
 				this.options.loaded(this.strokes);
 
 				if (this.options.autoplay) {
-					this.render();
+					this.render(this.options.renderAt);
+				} else {
+					if (this.options.renderAt) {
+						this.render(this.options.renderAt)
+					}
 				}
 			});
 		}
@@ -89,7 +93,7 @@ export class Dmak {
 			return false;
 		}
 
-		if (end === undefined) {
+		if (end === undefined || end === null) {
 			end = this.strokes.length;
 		} else if (end > this.strokes.length) {
 			return false;
@@ -164,6 +168,7 @@ Dmak.default = {
 		h: 109
 	},
 	step: 0.03,
+	renderAt: null,
 	element: "draw",
 	stroke: {
 		animated : {
@@ -394,7 +399,7 @@ function assign(source, replacement) {
 
 	for (const key in source) {
 		if (replacement.hasOwnProperty(key)) {
-			source[key] = (typeof replacement[key] === "object") ? assign(source[key], replacement[key]) : replacement[key];
+			source[key] = (replacement[key] !== null && typeof replacement[key] === "object") ? assign(source[key], replacement[key]) : replacement[key];
 		}
 	}
 	return source;

@@ -16,13 +16,13 @@
 
 		<div>
 			<h2>こんにちは</h2>
-			<vue-dmak text="こんにちは" :uri="kanjiUri" @loaded="onLoaded" @drew="onDrew" @erased="onErased"
-				ref="dmak1"></vue-dmak>
+			<vue-dmak text="こんにちは" :uri="kanjiUri" @loaded="onLoaded" :autoplay="false" :render-at="3" @drew="onDrew"
+				@erased="onErased" ref="dmak1"></vue-dmak>
 		</div>
 
 		<div>
 			<h2>世界</h2>
-			<vue-dmak text="世界" :uri="kanjiUri" :stroke="redStroke" ref="dmak2"></vue-dmak>
+			<vue-dmak text="世界" :uri="kanjiUri" :render-at="3" :stroke="redStroke" ref="dmak2"></vue-dmak>
 		</div>
 
 		<div>
