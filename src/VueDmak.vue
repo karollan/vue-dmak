@@ -106,6 +106,23 @@ export default {
 				this.initDmak();
 			},
 			immediate: false
+		},
+		step: {
+			handler() {
+				this.initDmak();
+			}
+		},
+		stroke: {
+			handler() {
+				this.initDmak();
+			},
+			deep: true
+		},
+		grid: {
+			handler() {
+				this.initDmak();
+			},
+			deep: true
 		}
 	},
 	beforeUnmount() {
@@ -117,6 +134,14 @@ export default {
 		initDmak() {
 			// Wait for next tick to ensure DOM is ready
 			this.$nextTick(() => {
+				if (this.dmak) {
+					this.dmak.pause();
+					// Clear the container
+					if (this.$refs.dmakContainer) {
+						this.$refs.dmakContainer.innerHTML = '';
+					}
+				}
+
 				const options = {
 					element: this.elementId,
 					uri: this.uri,
