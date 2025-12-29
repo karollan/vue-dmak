@@ -10,7 +10,7 @@ export class Dmak {
 		if (!Raphael) {
 			throw new Error('Raphael is required. Please provide Raphael instance.');
 		}
-		
+
 		this.Raphael = Raphael;
 		this.text = text;
 		// Fix #18 clone `default` to support several instance in parallel
@@ -18,16 +18,19 @@ export class Dmak {
 		this.strokes = [];
 		this.papers = [];
 		this.pointer = 0;
+		this.destroyed = false; // Track destruction state
 		this.timeouts = {
-			play : [],
-			erasing : [],
-			drawing : []
+			play: [],
+			erasing: [],
+			drawing: []
 		};
 
 		if (!this.options.skipLoad) {
 			const loader = new DmakLoader(this.options.uri);
 
 			loader.load(text, (data) => {
+				if (this.destroyed) return; // Prevent processing if destroyed
+
 				this.prepare(data);
 
 				// Execute custom callback "loaded" here
@@ -61,26 +64,76 @@ export class Dmak {
 	erase(end) {
 		// Cannot have two rendering process for the same draw. Keep it cool.
 		if (this.timeouts.play.length) {
-			return false;
+			return Promise.resolve();
 		}
 
 		// Don't go behind the beginning.
 		if (this.pointer <= 0) {
-			return false;
+			return Promise.resolve();
 		}
 
 		if (end === undefined) {
 			end = 0;
 		}
 
+		let maxDuration = 0;
+
 		do {
 			this.pointer--;
-			eraseStroke(this.strokes[this.pointer], this.timeouts.erasing, this.options);
+			const stroke = this.strokes[this.pointer];
+			eraseStroke(stroke, this.timeouts.erasing, this.options);
+
+			if (this.options.stroke.animated.erasing) {
+				maxDuration = Math.max(maxDuration, stroke.duration);
+			}
 
 			// Execute custom callback "erased" here
 			this.options.erased(this.pointer);
 		}
 		while (this.pointer > end);
+
+		return new Promise((resolve) => {
+			setTimeout(resolve, maxDuration);
+		});
+	}
+
+	/**
+	 * Destroy the Dmak instance, clearing all timeouts and removing Raphael papers.
+	 */
+	destroy() {
+		this.destroyed = true;
+		this.pause();
+
+		// Clear erasing timeouts
+		for (const timeout of this.timeouts.erasing) {
+			globalThis.clearTimeout(timeout);
+		}
+		this.timeouts.erasing = [];
+
+		// Clear drawing timeouts
+		for (const timeout of this.timeouts.drawing) {
+			globalThis.clearTimeout(timeout);
+		}
+		this.timeouts.drawing = [];
+
+		// Remove papers from DOM
+		if (this.papers) {
+			for (const paper of this.papers) {
+				paper.remove();
+			}
+			this.papers = [];
+		}
+	}
+
+	/**
+	 * Restart the animation: erase everything, wait for it to finish, then render.
+	 */
+	restart() {
+		this.pause();
+		this.erase(0).then(() => {
+			if (this.destroyed) return;
+			this.render();
+		});
 	}
 
 	/**
@@ -171,9 +224,9 @@ Dmak.default = {
 	renderAt: null,
 	element: "draw",
 	stroke: {
-		animated : {
-			drawing : true,
-			erasing : true
+		animated: {
+			drawing: true,
+			erasing: true
 		},
 		order: {
 			visible: false,
@@ -231,10 +284,10 @@ function preprocessStrokes(data, options, Raphael) {
 				"length": length,
 				"duration": length * options.step * 1000,
 				"path": data[i][j].path,
-				"groups" : data[i][j].groups,
+				"groups": data[i][j].groups,
 				"text": data[i][j].text,
 				"object": {
-					"path" : null,
+					"path": null,
 					"text": null
 				}
 			};
@@ -281,13 +334,13 @@ function eraseStroke(stroke, timeouts, options) {
 		stroke.object.text.remove();
 	}
 
-	const cb = function() {
+	const cb = function () {
 		stroke.object.path.remove();
 
 		// Finally properly prepare the object variable
 		stroke.object = {
-			"path" : null,
-			"text" : null
+			"path": null,
+			"text": null
 		};
 
 		timeouts.shift();
@@ -306,14 +359,14 @@ function eraseStroke(stroke, timeouts, options) {
  * Draw a single stroke ; drawing can be animated if set as so.
  */
 function drawStroke(paper, stroke, timeouts, options, Raphael) {
-	const cb = function() {
+	const cb = function () {
 		// The stroke object may have been already erased when we reach this timeout
 		if (stroke.object.path === null) {
 			return;
 		}
 
 		let color = options.stroke.attr.stroke;
-		if(options.stroke.attr.stroke === "random") {
+		if (options.stroke.attr.stroke === "random") {
 			color = Raphael.getColor();
 		}
 
@@ -353,7 +406,7 @@ function showStrokeOrder(paper, stroke, options) {
  * http://jakearchibald.com/2013/animated-line-drawing-svg/
  */
 function animateStroke(stroke, direction, options, callback) {
-	stroke.object.path.attr({"stroke": options.stroke.attr.active});
+	stroke.object.path.attr({ "stroke": options.stroke.attr.active });
 	stroke.object.path.node.style.transition = stroke.object.path.node.style.WebkitTransition = "none";
 
 	// Set up the starting positions

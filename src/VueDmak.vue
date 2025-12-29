@@ -98,11 +98,7 @@ export default {
 	},
 	watch: {
 		text: {
-			handler(newText) {
-				if (this.dmak) {
-					this.dmak.pause();
-					this.dmak.erase();
-				}
+			handler() {
 				this.initDmak();
 			},
 			immediate: false
@@ -131,15 +127,16 @@ export default {
 		}
 	},
 	methods: {
+		reset() {
+			if (this.dmak) {
+				this.dmak.restart();
+			}
+		},
 		initDmak() {
 			// Wait for next tick to ensure DOM is ready
 			this.$nextTick(() => {
 				if (this.dmak) {
-					this.dmak.pause();
-					// Clear the container
-					if (this.$refs.dmakContainer) {
-						this.$refs.dmakContainer.innerHTML = '';
-					}
+					this.dmak.destroy();
 				}
 
 				const options = {
