@@ -128,6 +128,10 @@ export default {
 | `width` | Number | `109` | Width in pixels of a single paper surface |
 | `viewBox` | Object | `{x: 0, y: 0, w: 109, h: 109}` | ViewBox configuration |
 | `step` | Number | `0.03` | Positive number which defines the speed of the drawing |
+| `view` | String | `'canvas'` | View mode: `'canvas'` (animation) or `'series'` (static frames) |
+| `seriesStyle` | Object | `{}` | Style object for the flex container string series mode |
+| `frameStyle` | Object | `{}` | Style object for individual character frames in series mode |
+| `seriesActiveStyle` | Object | See below | Configuration for active stroke and arrow in series mode |
 | `stroke` | Object | See below | Stroke configuration |
 | `grid` | Object | See below | Grid configuration |
 
@@ -152,6 +156,27 @@ export default {
 		'stroke-width': 4,
 		'stroke-linecap': 'round',
 		'stroke-linejoin': 'round'
+	}
+}
+```
+
+### Series Active Style (Series Mode Overrides)
+
+Overrides stroke and arrow style for the active stroke in "series" view.
+
+```javascript
+{
+	activeStroke: {
+		attr: {
+			stroke: '#BF0000'
+		}
+	},
+	arrow: {
+		show: true,
+		attr: {
+			stroke: '#BF0000',
+			size: 10
+		}
 	}
 }
 ```
@@ -190,6 +215,7 @@ Access methods via template ref:
 | `render(end)` | `end` (optional) | Render strokes. If `end` is provided, render up to that stroke index |
 | `pause()` | - | Pause rendering |
 | `erase(end)` | `end` (optional) | Erase strokes. If `end` is provided, erase up to that stroke index |
+| `reset()` | - | Reset the instance (clears timeouts and resets state) |
 | `eraseLastStrokes(nbStrokes)` | `nbStrokes` | Remove the last N strokes |
 | `renderNextStrokes(nbStrokes)` | `nbStrokes` | Render the next N strokes |
 
