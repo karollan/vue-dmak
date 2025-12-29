@@ -18,7 +18,7 @@ export class Dmak {
 		this.strokes = [];
 		this.papers = [];
 		this.pointer = 0;
-		this.destroyed = false; // Track destruction state
+		this.destroyed = false;
 		this.timeouts = {
 			play: [],
 			erasing: [],
@@ -29,7 +29,7 @@ export class Dmak {
 			const loader = new DmakLoader(this.options.uri);
 
 			loader.load(text, (data) => {
-				if (this.destroyed) return; // Prevent processing if destroyed
+				if (this.destroyed) return;
 
 				this.prepare(data);
 
@@ -52,9 +52,11 @@ export class Dmak {
 	 */
 	prepare(data) {
 		this.strokes = preprocessStrokes(data, this.options, this.Raphael);
-		this.papers = giveBirthToRaphael(data.length, this.options, this.Raphael);
-		if (this.options.grid.show) {
-			showGrid(this.papers, this.options);
+		if (!this.options.skipPapers) {
+			this.papers = giveBirthToRaphael(data.length, this.options, this.Raphael);
+			if (this.options.grid.show) {
+				showGrid(this.papers, this.options);
+			}
 		}
 	}
 
@@ -137,6 +139,54 @@ export class Dmak {
 	}
 
 	/**
+	 * Render a specific frame (stroke state) into a custom DOM element.
+	 * Used for series view.
+	 */
+	renderFrame(strokeIndex, element) {
+		// 1. Determine number of characters
+		const maxChar = this.strokes.reduce((max, s) => Math.max(max, s.char), 0);
+		const nbChar = maxChar + 1;
+
+		const papers = [];
+
+		// 2. Create papers for each character
+		for (let i = 0; i < nbChar; i++) {
+			const paper = new this.Raphael(element, this.options.width + "px", this.options.height + "px");
+			paper.setViewBox(this.options.viewBox.x, this.options.viewBox.y, this.options.viewBox.w, this.options.viewBox.h);
+			paper.canvas.setAttribute("class", "dmak-svg");
+			paper.canvas.style.position = "absolute";
+			paper.canvas.style.left = (i * this.options.width) + "px";
+			paper.canvas.style.top = "0px";
+
+			if (this.options.grid.show) {
+				paper.path("M" + (this.options.viewBox.w / 2) + ",0 L" + (this.options.viewBox.w / 2) + "," + this.options.viewBox.h).attr(this.options.grid.attr);
+				paper.path("M0," + (this.options.viewBox.h / 2) + " L" + this.options.viewBox.w + "," + (this.options.viewBox.h / 2)).attr(this.options.grid.attr);
+			}
+
+			papers.push(paper);
+		}
+
+		// 3. Render strokes
+		for (let i = 0; i <= strokeIndex; i++) {
+			const stroke = this.strokes[i];
+			const paper = papers[stroke.char];
+			const path = paper.path(stroke.path);
+
+			// Default attributes
+			path.attr(this.options.stroke.attr);
+
+			// Active stroke highlighting
+			if (i === strokeIndex) {
+				path.attr({ "stroke": this.options.seriesActiveStyle?.activeStroke?.attr?.stroke });
+				// We pass options to drawArrow to access size
+				if (this.options.seriesActiveStyle?.arrow?.show) {
+					drawArrow(paper, stroke, this.options.seriesActiveStyle?.activeStroke?.attr?.stroke, this.Raphael, this.options);
+				}
+			}
+		}
+	}
+
+	/**
 	 * All the magic happens here.
 	 */
 	render(end) {
@@ -211,6 +261,7 @@ Dmak.VERSION = "0.3.1";
 Dmak.default = {
 	uri: "",
 	skipLoad: false,
+	skipPapers: false,
 	autoplay: true,
 	height: 109,
 	width: 109,
@@ -242,6 +293,20 @@ Dmak.default = {
 			"stroke-width": 4,
 			"stroke-linecap": "round",
 			"stroke-linejoin": "round"
+		}
+	},
+	seriesActiveStyle: {
+		activeStroke: {
+			attr: {
+				stroke: '#BF0000'
+			}
+		},
+		arrow: {
+			show: true,
+			attr: {
+				stroke: '#BF0000',
+				size: 10
+			}
 		}
 	},
 	grid: {
@@ -456,5 +521,53 @@ function assign(source, replacement) {
 		}
 	}
 	return source;
+}
+
+/**
+ * Draw an arrow at the end of the stroke
+ */
+function drawArrow(paper, stroke, color, Raphael, options) {
+	if (!stroke.path) return;
+
+	const total = Raphael.getTotalLength(stroke.path);
+	if (total < 2) return;
+
+	let size = options?.seriesActiveStyle?.arrow?.attr?.size ?? 10;
+
+	let fill = options?.seriesActiveStyle?.arrow?.attr?.stroke ?? color;
+	console.log(options);
+	const delta = Math.min(total / 2, 3);
+	const end = Raphael.getPointAtLength(stroke.path, total);
+	const start = Raphael.getPointAtLength(stroke.path, total - delta);
+
+	const angle =
+		Raphael.angle(start.x, start.y, end.x, end.y) + 180;
+
+	// Direction unit vector
+	const dx = end.x - start.x;
+	const dy = end.y - start.y;
+	const mag = Math.hypot(dx, dy) || 1;
+
+	const ux = dx / mag;
+	const uy = dy / mag;
+
+	// Push arrow forward so it does not overlap stroke
+	const push = size * 0.6;
+	const px = end.x + ux * push;
+	const py = end.y + uy * push;
+
+	const arrowPath = `
+        M0,0
+        L${-size},${-size / 2}
+        L${-size},${size / 2}
+        Z
+    `;
+
+	const arrow = paper.path(arrowPath).attr({
+		fill,
+		stroke: "none"
+	});
+
+	arrow.transform(`t${px},${py}r${angle},0,0`);
 }
 

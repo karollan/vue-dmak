@@ -1,5 +1,14 @@
 <template>
-	<div :id="elementId" ref="dmakContainer"></div>
+	<div v-if="view === 'canvas'" :id="elementId" ref="dmakContainer"></div>
+	<div v-if="view === 'series'" class="dmak-series-container" :style="seriesStyle">
+		<div 
+			v-for="(s, index) in strokes" 
+			:key="index" 
+			ref="seriesFrames" 
+			class="dmak-series-frame"
+			:style="[{ position: 'relative', width: (width * nbChars) + 'px', height: height + 'px' }]"
+		></div>
+	</div>
 </template>
 
 <script>
@@ -13,6 +22,32 @@ export default {
 			type: String,
 			required: true,
 			default: ''
+		},
+		view: {
+			type: String,
+			default: 'canvas', // 'canvas' | 'series'
+			validator: (value) => ['canvas', 'series'].includes(value)
+		},
+		seriesStyle: {
+			type: Object,
+			default: () => ({})
+		},
+		seriesActiveStyle: {
+			type: Object,
+			default: () => ({
+				activeStroke: {
+					attr: {
+						stroke: '#BF0000'
+					}
+				},
+				arrow: {
+					show: true,
+					attr: {
+						stroke: '#BF0000',
+						size: 10
+					}
+				}
+			})
 		},
 		uri: {
 			type: String,
@@ -90,7 +125,9 @@ export default {
 		data() {
 			return {
 				dmak: null,
-				elementId: `dmak-${Math.random().toString(36).slice(2, 11)}`
+				elementId: `dmak-${Math.random().toString(36).slice(2, 11)}`,
+				strokes: [],
+				nbChars: 1
 			};
 		},
 	mounted() {
@@ -107,6 +144,17 @@ export default {
 			handler() {
 				this.initDmak();
 			}
+		},
+		view: {
+			handler() {
+				this.initDmak();
+			}
+		},
+		seriesActiveStyle: {
+			handler() {
+				this.initDmak();
+			},
+			deep: true
 		},
 		stroke: {
 			handler() {
@@ -128,7 +176,7 @@ export default {
 	},
 	methods: {
 		reset() {
-			if (this.dmak) {
+			if (this.dmak && this.view === 'canvas') {
 				this.dmak.restart();
 			}
 		},
@@ -139,20 +187,46 @@ export default {
 					this.dmak.destroy();
 				}
 
+				// Clear series strokes if reloading
+				this.strokes = [];
+
 				const options = {
 					element: this.elementId,
 					uri: this.uri,
 					skipLoad: this.skipLoad,
-					autoplay: this.autoplay,
+					skipPapers: this.view === 'series',
+					autoplay: this.view === 'canvas' ? this.autoplay : false,
 					height: this.height,
 					width: this.width,
 					viewBox: this.viewBox,
 					step: this.step,
 					renderAt: this.renderAt,
 					stroke: this.stroke,
+					seriesActiveStyle: this.seriesActiveStyle,
 					grid: this.grid,
 					loaded: (strokes) => {
+						this.strokes = strokes;
+						if (strokes.length > 0) {
+							// Determine number of chars based on max char index
+							const maxChar = strokes.reduce((max, s) => Math.max(max, s.char), 0);
+							this.nbChars = maxChar + 1;
+						} else {
+							this.nbChars = 1;
+						}
+						
 						this.$emit('loaded', strokes);
+						
+						if (this.view === 'series') {
+							this.$nextTick(() => {
+								if (this.$refs.seriesFrames) {
+									this.$refs.seriesFrames.forEach((el, index) => {
+										// Clear any previous content in the frame
+										el.innerHTML = '';
+										this.dmak.renderFrame(index, el);
+									});
+								}
+							});
+						}
 					},
 					erased: (pointer) => {
 						this.$emit('erased', pointer);

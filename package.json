@@ -1,6 +1,6 @@
 {
 	"name": "vue-dmak",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "Vue component wrapper for Draw Me A Kanji (dmak) - Render your Japanese writings with fun and taste",
 	"main": "dist/vue-dmak.umd.js",
 	"module": "dist/vue-dmak.es.js",

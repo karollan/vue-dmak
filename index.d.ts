@@ -10,6 +10,15 @@ export interface VueDmakProps {
     width?: number;
     viewBox?: { x: number; y: number; w: number; h: number };
     step?: number;
+    seriesActiveStyle?: {
+        stroke?: {
+            attr?: Record<string, string | number>;
+        };
+        arrow?: {
+            attr?: Record<string, string | number>;
+            show?: boolean;
+        };
+    };
     stroke?: {
         animated?: {
             drawing?: boolean;
