@@ -130,7 +130,7 @@ export default {
 | `step` | Number | `0.03` | Positive number which defines the speed of the drawing |
 | `view` | String | `'canvas'` | View mode: `'canvas'` (animation) or `'series'` (static frames) |
 | `seriesStyle` | Object | `{}` | Style object for the flex container string series mode |
-| `frameStyle` | Object | `{}` | Style object for individual character frames in series mode |
+| `seriesFrameStyle` | Object | `{}` | Style object for individual character frames in series mode |
 | `seriesActiveStyle` | Object | See below | Configuration for active stroke and arrow in series mode |
 | `canvasStyle` | Object | `{}` | Style object for the container in the canvas mode |
 | `stroke` | Object | See below | Stroke configuration |
