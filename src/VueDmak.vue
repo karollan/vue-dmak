@@ -1,12 +1,12 @@
 <template>
-	<div v-if="view === 'canvas'" :id="elementId" ref="dmakContainer"></div>
+	<div v-if="view === 'canvas'" class="dmak-container" :style="canvasStyle" :id="elementId" ref="dmakContainer"></div>
 	<div v-if="view === 'series'" class="dmak-series-container" :style="seriesStyle">
 		<div 
 			v-for="(s, index) in strokes" 
 			:key="index" 
 			ref="seriesFrames" 
 			class="dmak-series-frame"
-			:style="[{ position: 'relative', width: (width * nbChars) + 'px', height: height + 'px' }]"
+			:style="[{ position: 'relative', width: (width * nbChars) + 'px', height: height + 'px' }, seriesFrameStyle]"
 		></div>
 	</div>
 </template>
@@ -18,6 +18,10 @@ import Raphael from 'raphael';
 export default {
 	name: 'VueDmak',
 	props: {
+		canvasStyle: {
+			type: Object,
+			default: () => ({})
+		},
 		text: {
 			type: String,
 			required: true,
@@ -29,6 +33,10 @@ export default {
 			validator: (value) => ['canvas', 'series'].includes(value)
 		},
 		seriesStyle: {
+			type: Object,
+			default: () => ({})
+		},
+		seriesFrameStyle: {
 			type: Object,
 			default: () => ({})
 		},
@@ -268,7 +276,6 @@ export default {
 	}
 };
 </script>
-
 <style scoped>
 .dmak-svg {
 	display: inline-block;

@@ -132,6 +132,7 @@ export default {
 | `seriesStyle` | Object | `{}` | Style object for the flex container string series mode |
 | `frameStyle` | Object | `{}` | Style object for individual character frames in series mode |
 | `seriesActiveStyle` | Object | See below | Configuration for active stroke and arrow in series mode |
+| `canvasStyle` | Object | `{}` | Style object for the container in the canvas mode |
 | `stroke` | Object | See below | Stroke configuration |
 | `grid` | Object | See below | Grid configuration |
 
