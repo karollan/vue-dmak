@@ -535,7 +535,7 @@ function drawArrow(paper, stroke, color, Raphael, options) {
 	let size = options?.seriesActiveStyle?.arrow?.attr?.size ?? 10;
 
 	let fill = options?.seriesActiveStyle?.arrow?.attr?.stroke ?? color;
-	console.log(options);
+
 	const delta = Math.min(total / 2, 3);
 	const end = Raphael.getPointAtLength(stroke.path, total);
 	const start = Raphael.getPointAtLength(stroke.path, total - delta);
