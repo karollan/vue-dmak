@@ -24,9 +24,6 @@ export class DmakLoader {
 				if (done === nbChar) {
 					callback(paths);
 				}
-			},
-			error: (msg) => {
-				console.log("Error", msg);
 			}
 		};
 
@@ -46,7 +43,7 @@ function loadSvg(uri, index, charCode, callbacks) {
 	const code = ("00000" + charCode).slice(-5);
 
 	// Skip space character
-	if(code === "00020" || code === "03000") {
+	if (code === "00020" || code === "03000") {
 		callbacks.done(index, {
 			paths: [],
 			texts: []
@@ -60,7 +57,11 @@ function loadSvg(uri, index, charCode, callbacks) {
 			if (xhr.status === 200) {
 				callbacks.done(index, parseResponse(xhr.response, code));
 			} else {
-				callbacks.error(xhr.statusText);
+				// Treat missing SVG files as empty characters (no strokes)
+				callbacks.done(index, {
+					paths: [],
+					texts: []
+				});
 			}
 		}
 	};
@@ -71,44 +72,52 @@ function loadSvg(uri, index, charCode, callbacks) {
  * Simple parser to extract paths and texts data.
  */
 function parseResponse(response, code) {
+	// Handle null or empty responses
+	if (!response) {
+		return [];
+	}
+
 	const data = [];
 	const dom = new DOMParser().parseFromString(response, "application/xml");
 	const texts = dom.querySelectorAll("text");
 	const groups = [];
-	
+
 	// Private recursive function to parse DOM content
 	function __parse(element) {
 		const children = element.childNodes;
 
-		for(const child of children) {
-			if(child.tagName === "g") {
+		for (const child of children) {
+			if (child.tagName === "g") {
 				groups.push(child.getAttribute("id"));
 				__parse(child);
 				groups.splice(groups.indexOf(child.getAttribute("id")), 1);
 			}
-			else if(child.tagName === "path") {
+			else if (child.tagName === "path") {
 				data.push({
-					"path" : child.getAttribute("d"),
-					"groups" : groups.slice(0)
+					"path": child.getAttribute("d"),
+					"groups": groups.slice(0)
 				});
 			}
 		}
 	}
 
 	// Start parsing
-	__parse(dom.getElementById("kvg:" + code));
+	const rootElement = dom.getElementById("kvg:" + code);
+	if (rootElement) {
+		__parse(rootElement);
+	}
 
 	// And finally add order mark information
 	for (let i = 0; i < texts.length; i++) {
 		if (data[i]) {
 			data[i].text = {
-				"value" : texts[i].textContent,
-				"x" : texts[i].getAttribute("transform").split(" ")[4],
-				"y" : texts[i].getAttribute("transform").split(" ")[5].replace(")", "")
+				"value": texts[i].textContent,
+				"x": texts[i].getAttribute("transform").split(" ")[4],
+				"y": texts[i].getAttribute("transform").split(" ")[5].replace(")", "")
 			};
 		}
 	}
-	
+
 	return data;
 }
 

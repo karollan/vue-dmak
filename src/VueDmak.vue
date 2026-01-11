@@ -135,7 +135,9 @@ export default {
 				dmak: null,
 				elementId: `dmak-${Math.random().toString(36).slice(2, 11)}`,
 				strokes: [],
-				nbChars: 1
+				nbChars: 1,
+				hasData: false,
+				preservedHeight: null
 			};
 		},
 	mounted() {
@@ -191,6 +193,15 @@ export default {
 		initDmak() {
 			// Wait for next tick to ensure DOM is ready
 			this.$nextTick(() => {
+				// Preserve current height to prevent flickering during re-render
+				if (this.$refs.dmakContainer) {
+					const currentHeight = this.$refs.dmakContainer.offsetHeight;
+					if (currentHeight > 0) {
+						this.preservedHeight = currentHeight;
+						this.$refs.dmakContainer.style.minHeight = `${currentHeight}px`;
+					}
+				}
+				
 				if (this.dmak) {
 					this.dmak.destroy();
 				}
@@ -214,6 +225,8 @@ export default {
 					grid: this.grid,
 					loaded: (strokes) => {
 						this.strokes = strokes;
+						this.hasData = strokes.length > 0;
+						
 						if (strokes.length > 0) {
 							// Determine number of chars based on max char index
 							const maxChar = strokes.reduce((max, s) => Math.max(max, s.char), 0);
@@ -222,7 +235,7 @@ export default {
 							this.nbChars = 1;
 						}
 						
-						this.$emit('loaded', strokes);
+						this.$emit('loaded', { strokes, hasData: this.hasData });
 						
 						if (this.view === 'series') {
 							this.$nextTick(() => {
@@ -233,6 +246,14 @@ export default {
 										this.dmak.renderFrame(index, el);
 									});
 								}
+								
+								// Remove preserved height after rendering
+								this.removePreservedHeight();
+							});
+						} else {
+							// Remove preserved height after canvas rendering
+							this.$nextTick(() => {
+								this.removePreservedHeight();
 							});
 						}
 					},
@@ -271,6 +292,12 @@ export default {
 		renderNextStrokes(nbStrokes) {
 			if (this.dmak) {
 				this.dmak.renderNextStrokes(nbStrokes);
+			}
+		},
+		removePreservedHeight() {
+			if (this.$refs.dmakContainer && this.preservedHeight !== null) {
+				this.$refs.dmakContainer.style.minHeight = '';
+				this.preservedHeight = null;
 			}
 		}
 	}
